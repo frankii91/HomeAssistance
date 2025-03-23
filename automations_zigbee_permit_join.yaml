@@ -1,0 +1,68 @@
+- id: zigbee_permit_join_by_select
+  alias: Zigbee - Lista czasów dołączania (z odświeżaniem)
+  description: ''
+  triggers:
+  - entity_id: input_select.zigbee_permit_join_duration
+    from: 'Off'
+    trigger: state
+  conditions:
+  - condition: state
+    entity_id: binary_sensor.zigbee2mqtt_bridge_connection_state_2
+    state: 'on'
+  - condition: template
+    value_template: '{{ states(''input_select.zigbee_permit_join_duration'') != ''Off''
+      }}'
+  actions:
+  - data:
+      title: Zigbee2MQTT
+      message: 'Zigbee2MQTT: Dołączanie urządzeń włączone na {{ total_seconds }} sekund
+        ({{ selected_time }}).'
+    action: persistent_notification.create
+  - repeat:
+      count: '{{ refresh_count }}'
+      sequence:
+      - data:
+          topic: zigbee2mqtt/bridge/request/permit_join
+          payload: '{"time": 254}'
+        action: mqtt.publish
+      - delay:
+          seconds: '{{ refresh_interval }}'
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ remainder > 0 }}'
+      sequence:
+      - data:
+          topic: zigbee2mqtt/bridge/request/permit_join
+          payload: '{"time": {{ [remainder, 254] | min }}}
+
+            '
+        action: mqtt.publish
+      - delay:
+          seconds: '{{ remainder }}'
+  - data:
+      topic: zigbee2mqtt/bridge/request/permit_join
+      payload: '{"time": 0}'
+    action: mqtt.publish
+  - data:
+      title: Zigbee2MQTT
+      message: 'Zigbee2MQTT: Dołączanie wyłączone po {{ total_seconds }} sekundach
+        ({{ selected_time }}).'
+    action: persistent_notification.create
+  - data:
+      entity_id: input_select.zigbee_permit_join_duration
+      option: 'Off'
+    action: input_select.select_option
+  variables:
+    selected_time: "{% set t = states('input_select.zigbee_permit_join_duration')
+      %} {% if t in ['5 minut', '10 minut', '20 minut', '30 minut'] %}\n  {{ t }}\n{%
+      else %}\n  5 minut\n{% endif %}\n"
+    total_seconds: '{% if selected_time == ''5 minut'' %} 300 {% elif selected_time
+      == ''10 minut'' %} 600 {% elif selected_time == ''20 minut'' %} 1200 {% elif
+      selected_time == ''30 minut'' %} 1800 {% else %} 300 {% endif %}
+
+      '
+    refresh_interval: 200
+    refresh_count: '{{ (total_seconds // refresh_interval) | int }}'
+    remainder: '{{ total_seconds % refresh_interval }}'
+  mode: restart
