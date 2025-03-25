@@ -1,0 +1,101 @@
+zigbeepermitjoin:
+  script:
+    zigbee_permit_join:
+      alias: Zigbee - Dołączanie (z parametrem)
+      icon: mdi:link-variant-plus
+      mode: restart
+      fields:
+        czas:
+          name: Czas dołączania
+          description: Czas w formacie tekstowym, np. '10 minut'
+          required: false
+          example: '10 minut'
+      sequence:
+        - service: mqtt.publish
+          data:
+            topic: zigbee2mqtt/bridge/request/permit_join
+            payload: '{"time": 0}'
+        - delay: "00:00:01"
+        - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ czas | default('') == '0' }}"
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: zigbee2mqtt/bridge/request/permit_join
+                  payload: '{"time": 0}'
+              - service: timer.cancel
+                data:
+                  entity_id: timer.zigbee_join_timer
+              - service: persistent_notification.create
+                data:
+                  title: Zigbee2MQTT
+                  message: 'Dołączanie zostało wyłączone.'
+              - stop: true
+        - variables:
+            selected_time: >-
+              {% set t = czas if czas else '5 minut' %}
+              {{ t }}
+            total_seconds: >-
+              {% if selected_time == '5 minut' %} 300
+              {% elif selected_time == '10 minut' %} 600
+              {% elif selected_time == '20 minut' %} 1200
+              {% elif selected_time == '30 minut' %} 1800
+              {% else %} 300
+              {% endif %}
+            refresh_interval: 200
+            refresh_count: "{{ (total_seconds // refresh_interval) | int }}"
+            remainder: "{{ total_seconds % refresh_interval }}"
+  
+        - service: timer.cancel
+          data:
+            entity_id: timer.zigbee_join_timer
+  
+        - service: timer.start
+          data:
+            entity_id: timer.zigbee_join_timer
+            duration: "{{ total_seconds }}"
+  
+        - service: persistent_notification.create
+          data:
+            title: Zigbee2MQTT
+            message: 'Dołączanie uruchomione na {{ total_seconds }} sekund ({{ selected_time }}).'
+  
+        - repeat:
+            count: "{{ refresh_count }}"
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: zigbee2mqtt/bridge/request/permit_join
+                  payload: '{"time": 254}'
+              - delay:
+                  seconds: "{{ refresh_interval }}"
+  
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ remainder | int > 0 }}"
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    topic: zigbee2mqtt/bridge/request/permit_join
+                    payload: '{"time": {{ [remainder, 254] | min }}}'
+                - delay:
+                    seconds: "{{ remainder }}"
+  
+        - service: mqtt.publish
+          data:
+            topic: zigbee2mqtt/bridge/request/permit_join
+            payload: '{"time": 0}'
+  
+        - service: persistent_notification.create
+          data:
+            title: Zigbee2MQTT
+            message: 'Dołączanie zakończone ({{ selected_time }}).'
+  
+  timer:
+    zigbee_join_timer:
+      duration: "00:05:00"
+      name: Pozostały czas dołączania Zigbee
+  
