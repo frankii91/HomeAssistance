@@ -1,0 +1,147 @@
+title: Dom
+views:
+  - type: sections
+    path: ''
+    title: Permit Join
+    sections:
+      - type: grid
+        path: zigbee-join
+        icon: mdi:link-variant-plus
+        badges: []
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: entities
+                title: Dołączanie Zigbee – Status
+                show_header_toggle: false
+                state_color: true
+                entities:
+                  - entity: timer.zigbee_join_timer
+                    name: Pozostały czas dołączania Zigbee
+              - type: horizontal-stack
+                cards:
+                  - type: custom:button-card
+                    name: 5 minut
+                    icon: mdi:timer-outline
+                    entity: input_text.zigbee_permit_join_selected_time
+                    tap_action:
+                      action: call-service
+                      service: script.zigbee_permit_join
+                      data:
+                        czas: 5 minut
+                    styles:
+                      icon:
+                        - color: |
+                            [[[
+                              return entity.state === '5 minut'
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+                      name:
+                        - color: |
+                            [[[
+                              return entity.state === '5 minut'
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+                  - type: custom:button-card
+                    name: 10 minut
+                    icon: mdi:timer-outline
+                    entity: input_text.zigbee_permit_join_selected_time
+                    tap_action:
+                      action: call-service
+                      service: script.zigbee_permit_join
+                      data:
+                        czas: 10 minut
+                    styles:
+                      icon:
+                        - color: |
+                            [[[
+                              return entity.state === '10 minut'
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+                      name:
+                        - color: |
+                            [[[
+                              return entity.state === '10 minut'
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+              - type: horizontal-stack
+                cards:
+                  - type: custom:button-card
+                    name: 20 minut
+                    icon: mdi:timer-outline
+                    entity: input_text.zigbee_permit_join_selected_time
+                    tap_action:
+                      action: call-service
+                      service: script.zigbee_permit_join
+                      data:
+                        czas: 20 minut
+                    styles:
+                      icon:
+                        - color: |
+                            [[[
+                              return entity.state === '20 minut'
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+                      name:
+                        - color: |
+                            [[[
+                              return entity.state === '20 minut'
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+                  - type: custom:button-card
+                    name: 30 minut
+                    icon: mdi:timer-outline
+                    entity: input_text.zigbee_permit_join_selected_time
+                    tap_action:
+                      action: call-service
+                      service: script.zigbee_permit_join
+                      data:
+                        czas: 30 minut
+                    styles:
+                      icon:
+                        - color: |
+                            [[[
+                              return entity && ( entity.state == '30 minut')
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+                      name:
+                        - color: |
+                            [[[
+                              return entity && (entity.state == '30 minut')
+                                ? 'var(--state-icon-color)'
+                                : 'var(--disabled-text-color)';
+                            ]]]
+              - type: custom:button-card
+                name: Wyłącz dołączanie
+                icon: mdi:close-octagon
+                entity: input_text.zigbee_permit_join_selected_time
+                tap_action:
+                  action: call-service
+                  service: script.zigbee_permit_join
+                  data:
+                    czas: '0'
+                styles:
+                  icon:
+                    - color: |
+                        [[[
+                          return entity && ( entity.state == 0)
+                            ? 'var(--state-icon-color)'
+                            : 'var(--disabled-text-color)';
+                        ]]]
+                  name:
+                    - color: |
+                        [[[
+                          return entity && (entity.state == 0)
+                            ? 'var(--state-icon-color)'
+                            : 'var(--disabled-text-color)';
+                        ]]]
+    header:
+      layout: start
+      badges_position: top
