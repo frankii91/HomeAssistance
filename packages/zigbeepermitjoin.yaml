@@ -28,10 +28,14 @@ zigbeepermitjoin:
               - service: timer.cancel
                 data:
                   entity_id: timer.zigbee_join_timer
-              - service: persistent_notification.create
+#              - service: persistent_notification.create
+#                data:
+#                  title: Zigbee2MQTT
+#                  message: 'Dołączanie zostało wyłączone.'
+              - service: input_text.set_value
                 data:
-                  title: Zigbee2MQTT
-                  message: 'Dołączanie zostało wyłączone.'
+                  entity_id: input_text.zigbee_permit_join_selected_time
+                  value: '0'
               - stop: true
         - variables:
             selected_time: >-
@@ -51,16 +55,21 @@ zigbeepermitjoin:
         - service: timer.cancel
           data:
             entity_id: timer.zigbee_join_timer
-  
+            
+        - service: input_text.set_value
+          data:
+            entity_id: input_text.zigbee_permit_join_selected_time
+            value: "{{ selected_time }}"
+            
         - service: timer.start
           data:
             entity_id: timer.zigbee_join_timer
             duration: "{{ total_seconds }}"
   
-        - service: persistent_notification.create
-          data:
-            title: Zigbee2MQTT
-            message: 'Dołączanie uruchomione na {{ total_seconds }} sekund ({{ selected_time }}).'
+#        - service: persistent_notification.create
+#          data:
+#            title: Zigbee2MQTT
+#            message: 'Dołączanie uruchomione na {{ total_seconds }} sekund ({{ selected_time }}).'
   
         - repeat:
             count: "{{ refresh_count }}"
@@ -88,11 +97,11 @@ zigbeepermitjoin:
           data:
             topic: zigbee2mqtt/bridge/request/permit_join
             payload: '{"time": 0}'
-  
-        - service: persistent_notification.create
-          data:
-            title: Zigbee2MQTT
-            message: 'Dołączanie zakończone ({{ selected_time }}).'
+            
+#        - service: persistent_notification.create
+#          data:
+#            title: Zigbee2MQTT
+#            message: 'Dołączanie zakończone ({{ selected_time }}).'
   
   timer:
     zigbee_join_timer:
